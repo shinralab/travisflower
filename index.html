@@ -1,24 +1,39 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <title>Travis Flower</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Travis Flower — digital creator, strategist, and builder." />
+
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-  
+  <main class="wrap">
+    <section class="card">
+      <h1 class="title">Travis Flower</h1>
 
-        <header></header>
-        <section></section>
-        <section></section>
-        <section></section>
-        <footer></footer>
-      
+      <p class="subtitle">
+        Digital creator, systems thinker, and builder of small things that scale.
+        This site is the front door while new projects are being assembled.
+      </p>
+
+      <div class="cta">
+        <a class="btn primary" href="https://shinralab.github.io/travisflower">View Portfolio</a>
+        <a class="btn secondary" href="mailto:travis@travisflower.com">Contact</a>
+      </div>
+
+      <footer class="footer">
+        <span>© <span id="year"></span> Travis Flower</span>
+        <a href="https://github.com/shinralab">GitHub</a>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
-
 </html>
-    
-    
-  
+
