@@ -1,0 +1,691 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, RotateCcw, Zap, Target, Trophy, Volume2, VolumeX } from 'lucide-react';
+
+const QuantumNexus = () => {
+  const canvasRef = useRef(null);
+  const [gameState, setGameState] = useState('menu');
+  const [level, setLevel] = useState(1);
+  const [score, setScore] = useState(0);
+  const [energy, setEnergy] = useState(100);
+  const [particles, setParticles] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [obstacles, setObstacles] = useState([]);
+  const [powerups, setPowerups] = useState([]);
+  const [time, setTime] = useState(0);
+  const [bestTime, setBestTime] = useState(null);
+  const [soundOn, setSoundOn] = useState(true);
+  const animationRef = useRef(null);
+  const mouseRef = useRef({ x: 0, y: 0, down: false });
+  const gravityWellsRef = useRef([]);
+  const [selectedPower, setSelectedPower] = useState(null);
+  const [combo, setCombo] = useState(0);
+  const [message, setMessage] = useState('');
+
+  // Physics constants
+  const GRAVITY = 0.3;
+  const FRICTION = 0.98;
+  const BOUNCE = 0.7;
+
+  // Initialize level
+  useEffect(() => {
+    if (gameState === 'playing') {
+      initLevel(level);
+      setTime(0);
+      setEnergy(100);
+      setCombo(0);
+    }
+  }, [gameState, level]);
+
+  const initLevel = (lvl) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Create particles based on level
+    const newParticles = [];
+    const particleCount = Math.min(3 + lvl, 8);
+    
+    for (let i = 0; i < particleCount; i++) {
+      newParticles.push({
+        x: 100 + i * 60,
+        y: 100,
+        vx: 0,
+        vy: 0,
+        radius: 12,
+        mass: 1,
+        charge: i % 2 === 0 ? 1 : -1,
+        color: i % 2 === 0 ? '#00f5ff' : '#ff00ff',
+        trail: [],
+        collected: false
+      });
+    }
+    setParticles(newParticles);
+
+    // Create goals
+    const newGoals = [];
+    for (let i = 0; i < particleCount; i++) {
+      newGoals.push({
+        x: w - 150,
+        y: 150 + i * 80,
+        radius: 20,
+        charge: newParticles[i].charge,
+        collected: false,
+        pulsePhase: i * Math.PI / 3
+      });
+    }
+    setGoals(newGoals);
+
+    // Create obstacles based on level
+    const newObstacles = [];
+    for (let i = 0; i < lvl; i++) {
+      newObstacles.push({
+        x: 200 + i * 150,
+        y: 200 + Math.sin(i) * 100,
+        width: 80,
+        height: 20,
+        angle: i * 30,
+        rotating: true,
+        rotationSpeed: 0.02
+      });
+    }
+    setObstacles(newObstacles);
+
+    // Create powerups
+    const newPowerups = [];
+    if (lvl > 1) {
+      newPowerups.push({
+        x: w / 2,
+        y: h / 2,
+        type: 'gravity',
+        active: true,
+        radius: 15
+      });
+    }
+    if (lvl > 2) {
+      newPowerups.push({
+        x: w / 3,
+        y: h / 3,
+        type: 'boost',
+        active: true,
+        radius: 15
+      });
+    }
+    setPowerups(newPowerups);
+
+    gravityWellsRef.current = [];
+  };
+
+  // Game loop
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let lastTime = Date.now();
+
+    const gameLoop = () => {
+      const now = Date.now();
+      const dt = Math.min((now - lastTime) / 16.67, 2);
+      lastTime = now;
+
+      update(dt);
+      render(ctx);
+
+      animationRef.current = requestAnimationFrame(gameLoop);
+    };
+
+    gameLoop();
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [gameState, particles, goals, obstacles, powerups, energy]);
+
+  const update = (dt) => {
+    if (gameState !== 'playing') return;
+
+    setTime(t => t + dt / 60);
+
+    // Update particles
+    setParticles(prevParticles => {
+      const newParticles = prevParticles.map((p, i) => {
+        if (p.collected) return p;
+
+        let particle = { ...p };
+
+        // Apply gravity
+        particle.vy += GRAVITY * dt;
+
+        // Apply gravity wells
+        gravityWellsRef.current.forEach(well => {
+          const dx = well.x - particle.x;
+          const dy = well.y - particle.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > 0 && dist < 300) {
+            const force = well.strength / (dist * dist) * 100;
+            particle.vx += (dx / dist) * force * dt;
+            particle.vy += (dy / dist) * force * dt;
+          }
+        });
+
+        // Particle-particle interaction
+        prevParticles.forEach((other, j) => {
+          if (i !== j && !other.collected) {
+            const dx = other.x - particle.x;
+            const dy = other.y - particle.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0 && dist < 150) {
+              const force = particle.charge * other.charge * 0.5 / (dist * dist);
+              particle.vx -= (dx / dist) * force * dt;
+              particle.vy -= (dy / dist) * force * dt;
+            }
+          }
+        });
+
+        // Mouse interaction
+        if (mouseRef.current.down && selectedPower === 'attract') {
+          const dx = mouseRef.current.x - particle.x;
+          const dy = mouseRef.current.y - particle.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > 0) {
+            const force = 2;
+            particle.vx += (dx / dist) * force * dt;
+            particle.vy += (dy / dist) * force * dt;
+            setEnergy(e => Math.max(0, e - 0.5 * dt));
+          }
+        }
+
+        // Apply velocity
+        particle.x += particle.vx * dt;
+        particle.y += particle.vy * dt;
+
+        // Friction
+        particle.vx *= Math.pow(FRICTION, dt);
+        particle.vy *= Math.pow(FRICTION, dt);
+
+        // Wall collisions
+        const canvas = canvasRef.current;
+        if (particle.x - particle.radius < 0) {
+          particle.x = particle.radius;
+          particle.vx *= -BOUNCE;
+        }
+        if (particle.x + particle.radius > canvas.width) {
+          particle.x = canvas.width - particle.radius;
+          particle.vx *= -BOUNCE;
+        }
+        if (particle.y - particle.radius < 0) {
+          particle.y = particle.radius;
+          particle.vy *= -BOUNCE;
+        }
+        if (particle.y + particle.radius > canvas.height) {
+          particle.y = canvas.height - particle.radius;
+          particle.vy *= -BOUNCE;
+        }
+
+        // Obstacle collisions
+        obstacles.forEach(obs => {
+          const rotatedX = Math.cos(-obs.angle) * (particle.x - obs.x) - Math.sin(-obs.angle) * (particle.y - obs.y);
+          const rotatedY = Math.sin(-obs.angle) * (particle.x - obs.x) + Math.cos(-obs.angle) * (particle.y - obs.y);
+
+          if (Math.abs(rotatedX) < obs.width / 2 + particle.radius &&
+              Math.abs(rotatedY) < obs.height / 2 + particle.radius) {
+            if (Math.abs(rotatedX) > Math.abs(rotatedY)) {
+              particle.vx *= -BOUNCE;
+            } else {
+              particle.vy *= -BOUNCE;
+            }
+          }
+        });
+
+        // Update trail
+        particle.trail = [...particle.trail, { x: particle.x, y: particle.y }];
+        if (particle.trail.length > 20) particle.trail.shift();
+
+        return particle;
+      });
+
+      return newParticles;
+    });
+
+    // Update goals and check collection
+    setGoals(prevGoals => {
+      return prevGoals.map((goal, i) => {
+        goal.pulsePhase += 0.05 * dt;
+        
+        const particle = particles[i];
+        if (!particle.collected && !goal.collected) {
+          const dx = particle.x - goal.x;
+          const dy = particle.y - goal.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < goal.radius + particle.radius) {
+            if (particle.charge === goal.charge) {
+              setScore(s => s + 100 * (level + combo));
+              setCombo(c => c + 1);
+              setMessage('Perfect Match! +' + (100 * (level + combo)));
+              setTimeout(() => setMessage(''), 1000);
+              
+              setParticles(prev => prev.map((p, j) => 
+                i === j ? { ...p, collected: true } : p
+              ));
+              return { ...goal, collected: true };
+            } else {
+              setEnergy(e => Math.max(0, e - 20));
+              setCombo(0);
+              setMessage('Wrong charge!');
+              setTimeout(() => setMessage(''), 1000);
+            }
+          }
+        }
+        return goal;
+      });
+    });
+
+    // Check powerup collection
+    setPowerups(prevPowerups => {
+      return prevPowerups.map(power => {
+        if (!power.active) return power;
+        
+        particles.forEach(p => {
+          const dx = p.x - power.x;
+          const dy = p.y - power.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist < power.radius + p.radius) {
+            setEnergy(e => Math.min(100, e + 30));
+            setScore(s => s + 50);
+            return { ...power, active: false };
+          }
+        });
+        
+        return power;
+      });
+    });
+
+    // Update obstacles
+    setObstacles(prevObstacles => {
+      return prevObstacles.map(obs => {
+        if (obs.rotating) {
+          return { ...obs, angle: obs.angle + obs.rotationSpeed * dt };
+        }
+        return obs;
+      });
+    });
+
+    // Check win condition
+    if (goals.every(g => g.collected)) {
+      setGameState('win');
+      if (!bestTime || time < bestTime) {
+        setBestTime(time);
+      }
+    }
+
+    // Check lose condition
+    if (energy <= 0) {
+      setGameState('lose');
+    }
+  };
+
+  const render = (ctx) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // Clear with gradient
+    const gradient = ctx.createRadialGradient(
+      canvas.width / 2, canvas.height / 2, 0,
+      canvas.width / 2, canvas.height / 2, canvas.width / 1.5
+    );
+    gradient.addColorStop(0, '#0a0a1a');
+    gradient.addColorStop(1, '#000000');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw grid
+    ctx.strokeStyle = 'rgba(0, 245, 255, 0.1)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < canvas.width; i += 40) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, canvas.height);
+      ctx.stroke();
+    }
+    for (let i = 0; i < canvas.height; i += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(canvas.width, i);
+      ctx.stroke();
+    }
+
+    // Draw gravity wells
+    gravityWellsRef.current.forEach(well => {
+      const pulseRadius = 50 + Math.sin(time * 0.1) * 10;
+      const gradient = ctx.createRadialGradient(well.x, well.y, 0, well.x, well.y, pulseRadius);
+      gradient.addColorStop(0, 'rgba(138, 43, 226, 0.3)');
+      gradient.addColorStop(1, 'rgba(138, 43, 226, 0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(well.x, well.y, pulseRadius, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Draw powerups
+    powerups.forEach(power => {
+      if (!power.active) return;
+      
+      const glow = ctx.createRadialGradient(power.x, power.y, 0, power.x, power.y, power.radius * 2);
+      glow.addColorStop(0, power.type === 'gravity' ? 'rgba(138, 43, 226, 0.5)' : 'rgba(255, 215, 0, 0.5)');
+      glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(power.x, power.y, power.radius * 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = power.type === 'gravity' ? '#8a2be2' : '#ffd700';
+      ctx.beginPath();
+      ctx.arc(power.x, power.y, power.radius, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Draw obstacles
+    obstacles.forEach(obs => {
+      ctx.save();
+      ctx.translate(obs.x, obs.y);
+      ctx.rotate(obs.angle);
+      
+      const gradient = ctx.createLinearGradient(-obs.width / 2, 0, obs.width / 2, 0);
+      gradient.addColorStop(0, '#ff0066');
+      gradient.addColorStop(0.5, '#ff3388');
+      gradient.addColorStop(1, '#ff0066');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(-obs.width / 2, -obs.height / 2, obs.width, obs.height);
+      
+      ctx.strokeStyle = '#ff00ff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(-obs.width / 2, -obs.height / 2, obs.width, obs.height);
+      
+      ctx.restore();
+    });
+
+    // Draw goals
+    goals.forEach((goal, i) => {
+      if (goal.collected) return;
+      
+      const pulseSize = 1 + Math.sin(goal.pulsePhase) * 0.2;
+      const glow = ctx.createRadialGradient(
+        goal.x, goal.y, 0,
+        goal.x, goal.y, goal.radius * 2 * pulseSize
+      );
+      glow.addColorStop(0, goal.charge > 0 ? 'rgba(0, 245, 255, 0.5)' : 'rgba(255, 0, 255, 0.5)');
+      glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(goal.x, goal.y, goal.radius * 2 * pulseSize, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = goal.charge > 0 ? '#00f5ff' : '#ff00ff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(goal.x, goal.y, goal.radius * pulseSize, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = goal.charge > 0 ? '#00f5ff' : '#ff00ff';
+      ctx.font = 'bold 20px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(goal.charge > 0 ? '+' : '-', goal.x, goal.y);
+    });
+
+    // Draw particle trails
+    particles.forEach(p => {
+      if (p.collected) return;
+      
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath();
+      p.trail.forEach((point, i) => {
+        if (i === 0) ctx.moveTo(point.x, point.y);
+        else ctx.lineTo(point.x, point.y);
+      });
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    });
+
+    // Draw particles
+    particles.forEach((p, i) => {
+      if (p.collected) {
+        // Collected animation
+        const alpha = Math.max(0, 1 - (time % 1));
+        ctx.globalAlpha = alpha;
+      }
+
+      const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius * 2);
+      glow.addColorStop(0, p.color);
+      glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius * 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.charge > 0 ? '+' : '-', p.x, p.y);
+
+      ctx.globalAlpha = 1;
+    });
+
+    // Draw mouse effect
+    if (mouseRef.current.down && selectedPower === 'attract' && energy > 0) {
+      const gradient = ctx.createRadialGradient(
+        mouseRef.current.x, mouseRef.current.y, 0,
+        mouseRef.current.x, mouseRef.current.y, 80
+      );
+      gradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(mouseRef.current.x, mouseRef.current.y, 80, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+
+  const handleMouseDown = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    mouseRef.current = { x, y, down: true };
+
+    if (selectedPower === 'gravity' && energy >= 20) {
+      gravityWellsRef.current.push({ x, y, strength: 5 });
+      setEnergy(e => e - 20);
+      setTimeout(() => {
+        gravityWellsRef.current.shift();
+      }, 3000);
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    mouseRef.current.x = e.clientX - rect.left;
+    mouseRef.current.y = e.clientY - rect.top;
+  };
+
+  const handleMouseUp = () => {
+    mouseRef.current.down = false;
+  };
+
+  const startGame = () => {
+    setGameState('playing');
+    setScore(0);
+    setLevel(1);
+  };
+
+  const nextLevel = () => {
+    setLevel(l => l + 1);
+    setGameState('playing');
+  };
+
+  const retry = () => {
+    setGameState('playing');
+  };
+
+  return (
+    <div className="w-full h-screen bg-black flex flex-col items-center justify-center p-4 overflow-hidden">
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          width={900}
+          height={600}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          className="border-2 border-cyan-500 rounded-lg shadow-2xl shadow-cyan-500/50"
+          style={{ cursor: selectedPower ? 'crosshair' : 'default' }}
+        />
+
+        {/* HUD */}
+        {gameState === 'playing' && (
+          <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+            <div className="bg-black/80 backdrop-blur px-4 py-2 rounded-lg border border-cyan-500">
+              <div className="text-cyan-400 text-sm">Level {level}</div>
+              <div className="text-white text-2xl font-bold">{score}</div>
+              {combo > 1 && <div className="text-yellow-400 text-sm">Combo x{combo}</div>}
+            </div>
+
+            <div className="bg-black/80 backdrop-blur px-4 py-2 rounded-lg border border-cyan-500">
+              <div className="text-cyan-400 text-sm">Energy</div>
+              <div className="w-48 h-4 bg-gray-800 rounded-full overflow-hidden border border-cyan-500">
+                <div 
+                  className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all"
+                  style={{ width: `${energy}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="bg-black/80 backdrop-blur px-4 py-2 rounded-lg border border-cyan-500">
+              <div className="text-cyan-400 text-sm">Time</div>
+              <div className="text-white text-xl font-mono">{time.toFixed(1)}s</div>
+            </div>
+          </div>
+        )}
+
+        {/* Power selection */}
+        {gameState === 'playing' && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4">
+            <button
+              onClick={() => setSelectedPower(selectedPower === 'attract' ? null : 'attract')}
+              className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                selectedPower === 'attract'
+                  ? 'bg-cyan-500 text-black border-2 border-white'
+                  : 'bg-black/80 text-cyan-400 border-2 border-cyan-500 hover:bg-cyan-500/20'
+              }`}
+            >
+              <Zap className="inline mr-2" size={20} />
+              Attract
+            </button>
+            <button
+              onClick={() => setSelectedPower(selectedPower === 'gravity' ? null : 'gravity')}
+              className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                selectedPower === 'gravity'
+                  ? 'bg-purple-500 text-black border-2 border-white'
+                  : 'bg-black/80 text-purple-400 border-2 border-purple-500 hover:bg-purple-500/20'
+              }`}
+            >
+              <Target className="inline mr-2" size={20} />
+              Gravity Well (20)
+            </button>
+          </div>
+        )}
+
+        {/* Messages */}
+        {message && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/90 text-white px-8 py-4 rounded-lg text-2xl font-bold border-2 border-cyan-500 animate-pulse">
+            {message}
+          </div>
+        )}
+
+        {/* Menu */}
+        {gameState === 'menu' && (
+          <div className="absolute inset-0 bg-black/90 backdrop-blur flex flex-col items-center justify-center">
+            <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+              Quantum Nexus
+            </h1>
+            <p className="text-cyan-400 text-xl mb-8 text-center max-w-md">
+              Guide charged particles to matching goals using electromagnetic forces and gravity wells
+            </p>
+            <button
+              onClick={startGame}
+              className="px-12 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-2xl font-bold rounded-lg hover:scale-110 transition-transform"
+            >
+              <Play className="inline mr-2" size={24} />
+              Start Game
+            </button>
+            <div className="mt-8 text-gray-400 text-sm">
+              Use mouse to attract particles or place gravity wells
+            </div>
+          </div>
+        )}
+
+        {/* Win screen */}
+        {gameState === 'win' && (
+          <div className="absolute inset-0 bg-black/90 backdrop-blur flex flex-col items-center justify-center">
+            <Trophy className="text-yellow-400 mb-4" size={80} />
+            <h2 className="text-5xl font-bold text-cyan-400 mb-4">Level Complete!</h2>
+            <div className="text-white text-2xl mb-2">Score: {score}</div>
+            <div className="text-cyan-400 text-xl mb-2">Time: {time.toFixed(2)}s</div>
+            {bestTime && <div className="text-purple-400 text-lg mb-8">Best: {bestTime.toFixed(2)}s</div>}
+            <button
+              onClick={nextLevel}
+              className="px-12 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-2xl font-bold rounded-lg hover:scale-110 transition-transform"
+            >
+              Next Level
+            </button>
+          </div>
+        )}
+
+        {/* Lose screen */}
+        {gameState === 'lose' && (
+          <div className="absolute inset-0 bg-black/90 backdrop-blur flex flex-col items-center justify-center">
+            <h2 className="text-5xl font-bold text-red-400 mb-4">Out of Energy!</h2>
+            <div className="text-white text-2xl mb-8">Score: {score}</div>
+            <button
+              onClick={retry}
+              className="px-12 py-4 bg-gradient-to-r from-red-500 to-orange-500 text-white text-2xl font-bold rounded-lg hover:scale-110 transition-transform"
+            >
+              <RotateCcw className="inline mr-2" size={24} />
+              Try Again
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Instructions */}
+      <div className="mt-4 text-center text-cyan-400 text-sm max-w-2xl">
+        Match charged particles (+/-) to goals of the same charge • Use Attract to pull particles • Use Gravity Wells to create attraction points • Avoid obstacles • Manage your energy wisely
+      </div>
+    </div>
+  );
+};
+
+export default QuantumNexus;
