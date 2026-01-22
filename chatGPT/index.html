@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JavaScript Offline Course</title>
+  <style>
+    :root { color-scheme: dark light; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.45; margin: 0; }
+    header { padding: 20px 16px; border-bottom: 1px solid rgba(128,128,128,.35); position: sticky; top: 0; backdrop-filter: blur(8px); background: rgba(0,0,0,.06); }
+    header h1 { margin: 0 0 6px; font-size: 18px; }
+    header p { margin: 0; opacity: .8; font-size: 13px; }
+    main { max-width: 980px; margin: 0 auto; padding: 16px; display: grid; grid-template-columns: 280px 1fr; gap: 18px; }
+    nav { border: 1px solid rgba(128,128,128,.35); border-radius: 10px; padding: 12px; position: sticky; top: 88px; height: calc(100vh - 110px); overflow: auto; }
+    nav h2 { margin: 0 0 8px; font-size: 14px; }
+    nav a { display: block; padding: 6px 8px; border-radius: 8px; color: inherit; text-decoration: none; font-size: 13px; opacity: .9; }
+    nav a:hover { background: rgba(128,128,128,.15); }
+    section { border: 1px solid rgba(128,128,128,.35); border-radius: 10px; padding: 14px; margin: 0 0 14px; }
+    section h2 { margin: 0 0 8px; font-size: 16px; }
+    section h3 { margin: 14px 0 6px; font-size: 14px; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    pre { background: rgba(128,128,128,.12); padding: 12px; border-radius: 10px; overflow: auto; }
+    .pill { display: inline-block; font-size: 12px; padding: 2px 8px; border: 1px solid rgba(128,128,128,.35); border-radius: 999px; opacity: .9; }
+    details { margin-top: 10px; border-top: 1px dashed rgba(128,128,128,.35); padding-top: 10px; }
+    summary { cursor: pointer; font-weight: 600; }
+    ul { margin: 8px 0 0 18px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .note { background: rgba(255, 193, 7, .12); border: 1px solid rgba(255, 193, 7, .35); padding: 10px; border-radius: 10px; }
+    .ok { background: rgba(46, 204, 113, .10); border: 1px solid rgba(46, 204, 113, .30); padding: 10px; border-radius: 10px; }
+    footer { padding: 16px; opacity: .75; font-size: 12px; text-align: center; }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+      nav { position: relative; top: 0; height: auto; }
+      header { position: relative; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>JavaScript Offline Course</h1>
+    <p>Save this file and open it anytime. Read. Do the exercises. When you can, run snippets in a browser console or Node.</p>
+  </header>
+
+  <main>
+    <nav aria-label="Table of contents">
+      <h2>Contents</h2>
+      <a href="#how-to-use">How to use</a>
+      <a href="#m0">Module 0: Core ideas</a>
+      <a href="#m1">Module 1: Types</a>
+      <a href="#m2">Module 2: Variables</a>
+      <a href="#m3">Module 3: Operators</a>
+      <a href="#m4">Module 4: Control flow</a>
+      <a href="#m5">Module 5: Loops</a>
+      <a href="#m6">Module 6: Functions</a>
+      <a href="#m7">Module 7: Arrays</a>
+      <a href="#m8">Module 8: Objects</a>
+      <a href="#m9">Module 9: Strings</a>
+      <a href="#m10">Module 10: Truthy/falsy</a>
+      <a href="#m11">Module 11: Scope</a>
+      <a href="#m12">Module 12: Errors & debugging</a>
+      <a href="#m13">Module 13: DOM basics</a>
+      <a href="#m14">Module 14: Async basics</a>
+      <a href="#m15">Module 15: Best practices</a>
+      <a href="#projects">Mini Projects</a>
+      <a href="#cheatsheet">Cheat sheet</a>
+    </nav>
+
+    <div>
+      <section id="how-to-use">
+        <h2>How to use this course <span class="pill">offline</span></h2>
+        <ul>
+          <li>Read one module at a time.</li>
+          <li>Answer the exercises in a notes app or on paper.</li>
+          <li>When you can run code, test your answers in a browser console or Node.</li>
+          <li>Don’t memorize syntax. Memorize patterns.</li>
+        </ul>
+        <div class="note" style="margin-top:12px;">
+          <strong>Rule:</strong> if a concept feels fuzzy, make a tiny example with 3-5 lines of code.
+        </div>
+      </section>
+
+      <section id="m0">
+        <h2>Module 0: The three core ideas</h2>
+        <div class="two-col">
+          <div>
+            <h3>1) Values</h3>
+            <p>A value is data: number, string, boolean, object, etc.</p>
+          </div>
+          <div>
+            <h3>2) Variables</h3>
+            <p>A variable is a label pointing to a value.</p>
+          </div>
+        </div>
+        <h3>3) Control flow</h3>
+        <p>If this, do that. Repeat this. Stop when done.</p>
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>Explain “value” in your own words.</li>
+            <li>Explain “variable” in your own words.</li>
+            <li>Give one real-world example of control flow.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m1">
+        <h2>Module 1: Basic types</h2>
+        <h3>Numbers</h3>
+        <p><code>1</code>, <code>2.5</code>, <code>-10</code>, <code>NaN</code>, <code>Infinity</code></p>
+
+        <h3>Strings</h3>
+        <p><code>"hi"</code> or <code>'hi'</code> or <code>`hi`</code></p>
+
+        <h3>Booleans</h3>
+        <p><code>true</code> and <code>false</code></p>
+
+        <h3>null vs undefined</h3>
+        <ul>
+          <li><code>undefined</code>: missing / not assigned</li>
+          <li><code>null</code>: intentionally empty</li>
+        </ul>
+
+        <h3>Objects</h3>
+        <pre><code>const user = { name: "Travis", level: 5 };</code></pre>
+
+        <h3>Arrays</h3>
+        <pre><code>const nums = [10, 20, 30];</code></pre>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>What type is <code>"5"</code> vs <code>5</code>?</li>
+            <li>Explain <code>null</code> vs <code>undefined</code> in plain English.</li>
+            <li>Write an object for a camera listing with keys: <code>brand</code>, <code>model</code>, <code>price</code>.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m2">
+        <h2>Module 2: Variables and the big 3 keywords</h2>
+        <h3>let</h3>
+        <pre><code>let count = 0;
+count = count + 1;</code></pre>
+
+        <h3>const</h3>
+        <pre><code>const name = "Travis";</code></pre>
+
+        <div class="note">
+          <strong>Important:</strong> <code>const</code> prevents reassignment, not mutation.
+          <pre><code>const user = { points: 0 };
+user.points = 5; // ok
+// user = {};    // not ok</code></pre>
+        </div>
+
+        <h3>var</h3>
+        <p>Old style. Avoid unless maintaining old code.</p>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>When should you use <code>const</code>?</li>
+            <li>Why can a <code>const</code> object’s properties still change?</li>
+            <li>Convert this to best practice: <code>var total = 0; total = total + 5;</code></li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m3">
+        <h2>Module 3: Operators you actually use</h2>
+        <h3>Math</h3>
+        <p><code>+ - * / % **</code> and <code>%</code> is remainder.</p>
+
+        <h3>Comparison</h3>
+        <ul>
+          <li><code>===</code> equal (use this)</li>
+          <li><code>!==</code> not equal</li>
+          <li><code>&gt;</code> <code>&lt;</code> <code>&gt;=</code> <code>&lt;=</code></li>
+        </ul>
+        <div class="note"><strong>Avoid</strong> <code>==</code> unless you know coercion rules.</div>
+
+        <h3>Logical</h3>
+        <p><code>&amp;&amp;</code> and, <code>||</code> or, <code>!</code> not</p>
+
+        <h3>Assignment shortcuts</h3>
+        <pre><code>x += 1; // same as x = x + 1</code></pre>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>What does <code>10 % 3</code> return?</li>
+            <li>Predict true/false: <code>"5" === 5</code>, <code>"5" == 5</code></li>
+            <li>Write a condition: age is at least 18 AND hasId is true.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m4">
+        <h2>Module 4: Control flow</h2>
+        <h3>if / else</h3>
+        <pre><code>let grade;
+if (score &gt;= 90) {
+  grade = "A";
+} else {
+  grade = "not A";
+}</code></pre>
+
+        <h3>switch (less common)</h3>
+        <p>Good for many exact matches.</p>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>If username is missing, set it to <code>"Guest"</code>.</li>
+            <li>If price is under 50 say “good deal” else “maybe”.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m5">
+        <h2>Module 5: Loops</h2>
+        <h3>for</h3>
+        <pre><code>for (let i = 0; i &lt; 5; i++) {
+  // runs 5 times
+}</code></pre>
+
+        <h3>while</h3>
+        <pre><code>while (isRunning) {
+  // keep going until false
+}</code></pre>
+
+        <h3>for...of (great for arrays)</h3>
+        <pre><code>for (const item of items) {
+  // item is each element
+}</code></pre>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>Loop through <code>[2,4,6]</code> and sum them.</li>
+            <li>Loop through an array of prices and count how many are under 50.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m6">
+        <h2>Module 6: Functions</h2>
+        <p>A function is a reusable mini-program.</p>
+
+        <h3>Function declaration</h3>
+        <pre><code>function add(a, b) {
+  return a + b;
+}</code></pre>
+
+        <h3>Arrow function</h3>
+        <pre><code>const add = (a, b) =&gt; a + b;</code></pre>
+
+        <h3>Return</h3>
+        <p>Return gives the function’s output. Without return, the result is <code>undefined</code>.</p>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>Write <code>isEven(n)</code> returns true if n is even.</li>
+            <li>Write <code>formatPrice(n)</code> returns a string like <code>$12.30</code>.</li>
+            <li>Why does this return undefined?
+              <pre><code>function f(){ 2 + 2 }</code></pre>
+            </li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m7">
+        <h2>Module 7: Arrays</h2>
+        <h3>Access</h3>
+        <pre><code>arr[0] // first item</code></pre>
+
+        <h3>Add / remove</h3>
+        <ul>
+          <li><code>push</code> add end</li>
+          <li><code>pop</code> remove end</li>
+          <li><code>shift</code> remove start</li>
+          <li><code>unshift</code> add start</li>
+        </ul>
+
+        <h3>The big 5 array methods</h3>
+        <h3>map (transform)</h3>
+        <pre><code>const doubled = nums.map(n =&gt; n * 2);</code></pre>
+
+        <h3>filter (keep matches)</h3>
+        <pre><code>const cheap = prices.filter(p =&gt; p &lt; 50);</code></pre>
+
+        <h3>find (first match)</h3>
+        <pre><code>const user = users.find(u =&gt; u.id === 7);</code></pre>
+
+        <h3>some / every (any / all)</h3>
+        <pre><code>prices.some(p =&gt; p &lt; 10);
+prices.every(p =&gt; p &gt; 0);</code></pre>
+
+        <h3>reduce (combine)</h3>
+        <pre><code>const sum = nums.reduce((acc, n) =&gt; acc + n, 0);</code></pre>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>Use map to turn <code>["a","b"]</code> into <code>["A","B"]</code>.</li>
+            <li>Use filter to keep only even numbers.</li>
+            <li>Use reduce to total a cart: <code>[9.99, 4.50, 2.00]</code>.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m8">
+        <h2>Module 8: Objects</h2>
+        <pre><code>const camera = {
+  brand: "Lomography",
+  model: "Fisheye",
+  price: 40,
+  tags: ["film", "35mm", "fisheye"]
+};</code></pre>
+
+        <h3>Read / write</h3>
+        <pre><code>camera.price;
+camera["price"];</code></pre>
+
+        <h3>Destructuring</h3>
+        <pre><code>const { brand, price } = camera;</code></pre>
+
+        <h3>Optional chaining</h3>
+        <pre><code>user?.profile?.name</code></pre>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>Make an object for an OfferUp listing.</li>
+            <li>Write a function that takes a listing object and returns a title string.</li>
+            <li>Explain what optional chaining prevents.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m9">
+        <h2>Module 9: Strings</h2>
+        <h3>Template literals</h3>
+        <pre><code>const msg = `Price: $${price}`;</code></pre>
+
+        <h3>Useful methods</h3>
+        <ul>
+          <li><code>trim()</code> removes extra spaces</li>
+          <li><code>toLowerCase()</code></li>
+          <li><code>includes("word")</code></li>
+          <li><code>slice(start, end)</code></li>
+          <li><code>replace(...)</code></li>
+        </ul>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>Turn <code>"  Hello "</code> into <code>"hello"</code>.</li>
+            <li>Check if a title includes “camera” case-insensitive.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m10">
+        <h2>Module 10: Truthy / falsy</h2>
+        <p>Falsy values: <code>false</code>, <code>0</code>, <code>""</code>, <code>null</code>, <code>undefined</code>, <code>NaN</code>. Everything else is truthy.</p>
+
+        <h3>Defaulting values</h3>
+        <pre><code>const name = input || "Guest";</code></pre>
+
+        <div class="note">
+          <p><strong>Careful:</strong> <code>||</code> treats <code>""</code> and <code>0</code> as “missing”. If you only want null/undefined to default, use <code>??</code>.</p>
+          <pre><code>const name = input ?? "Guest";</code></pre>
+        </div>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>What happens with <code>0 || 10</code>?</li>
+            <li>What happens with <code>0 ?? 10</code>?</li>
+            <li>When is <code>??</code> better than <code>||</code>?</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m11">
+        <h2>Module 11: Scope</h2>
+        <ul>
+          <li><strong>Global</strong>: outside everything (avoid when possible)</li>
+          <li><strong>Function</strong>: inside a function</li>
+          <li><strong>Block</strong>: inside <code>{}</code> for let/const</li>
+        </ul>
+        <div class="ok"><strong>Rule:</strong> keep variables as local as possible.</div>
+
+        <details>
+          <summary>Exercise</summary>
+          <ul>
+            <li>Why is global scope risky in large projects?</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m12">
+        <h2>Module 12: Errors & debugging mindset</h2>
+        <h3>How to read errors</h3>
+        <ul>
+          <li>The message tells you what happened.</li>
+          <li>The stack trace tells you where.</li>
+        </ul>
+
+        <h3>Defensive habits</h3>
+        <ul>
+          <li>Validate inputs.</li>
+          <li>Log intermediate values.</li>
+          <li>Write tiny functions.</li>
+        </ul>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>List 3 likely causes of “Cannot read properties of undefined”.</li>
+            <li>How would you guard against missing object keys?</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m13">
+        <h2>Module 13: DOM basics (web pages)</h2>
+        <p>Core loop: select an element → listen for events → change the page.</p>
+
+        <h3>Select</h3>
+        <pre><code>const el = document.querySelector("#id");
+const nodes = document.querySelectorAll(".class");</code></pre>
+
+        <h3>Change text</h3>
+        <pre><code>el.textContent = "Hi";</code></pre>
+
+        <h3>Events</h3>
+        <pre><code>button.addEventListener("click", () =&gt; {
+  // do stuff
+});</code></pre>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>Set the text of element id <code>status</code> to “Ready”.</li>
+            <li>Write a click handler that increments a counter and updates the page.</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m14">
+        <h2>Module 14: Async basics</h2>
+        <p>Some work takes time (network, files, timers). JS uses promises to represent “a value you’ll get later”.</p>
+
+        <h3>async/await</h3>
+        <pre><code>async function load() {
+  const res = await fetch("/data.json");
+  const data = await res.json();
+  return data;
+}</code></pre>
+
+        <details>
+          <summary>Exercises</summary>
+          <ul>
+            <li>In plain English, what does <code>await</code> do?</li>
+            <li>What happens if fetch fails and you don’t catch errors?</li>
+          </ul>
+        </details>
+      </section>
+
+      <section id="m15">
+        <h2>Module 15: Best practices (80/20)</h2>
+        <ul>
+          <li>Use <code>const</code> by default</li>
+          <li>Use <code>===</code> not <code>==</code></li>
+          <li>Prefer small functions</li>
+          <li>Name variables clearly</li>
+          <li>Avoid deep nesting; use early return</li>
+          <li>Validate inputs at the edges</li>
+        </ul>
+
+        <h3>Early return example</h3>
+        <pre><code>function getDiscount(price) {
+  if (price &lt;= 0) return 0;
+  if (price &lt; 50) return 5;
+  return 0;
+}</code></pre>
+      </section>
+
+      <section id="projects">
+        <h2>Mini Projects</h2>
+        <h3>Project 1: OfferUp Listing Generator</h3>
+        <ul>
+          <li>Input: item name, condition, price, features array</li>
+          <li>Output: title string + description paragraph</li>
+          <li>Practice: objects, arrays, template literals</li>
+        </ul>
+
+        <h3>Project 2: Simple Budget Tracker</h3>
+        <ul>
+          <li>Array of transactions: <code>{ label, amount }</code></li>
+          <li>Functions: add, total, largestExpense, listIncome</li>
+          <li>Practice: reduce, filter, loops</li>
+        </ul>
+
+        <h3>Project 3: Flashcard Quiz Engine</h3>
+        <ul>
+          <li>Questions array: <code>{ q, a }</code></li>
+          <li>Function: <code>checkAnswer</code> (case-insensitive)</li>
+          <li>Score counter</li>
+          <li>Practice: strings, conditionals, functions</li>
+        </ul>
+      </section>
+
+      <section id="cheatsheet">
+        <h2>One-page cheat sheet</h2>
+        <ul>
+          <li><strong>Variables:</strong> <code>const</code>, <code>let</code></li>
+          <li><strong>Equality:</strong> <code>===</code></li>
+          <li><strong>Arrays:</strong> <code>map</code>, <code>filter</code>, <code>find</code>, <code>reduce</code></li>
+          <li><strong>Objects:</strong> <code>obj.key</code>, destructuring <code>{ key }</code></li>
+          <li><strong>Defaulting:</strong> <code>??</code> vs <code>||</code></li>
+          <li><strong>Functions:</strong> input → output via <code>return</code></li>
+          <li><strong>Common bug:</strong> undefined access = missing value somewhere</li>
+        </ul>
+      </section>
+
+      <footer>
+        Built to be read offline. If you want, I can add answer keys and interactive self-tests next.
+      </footer>
+    </div>
+  </main>
+</body>
+</html>
