@@ -23,7 +23,7 @@
 
 </head>
 <style>
-  nav.custom-nav {
+  nav.bottom-nav {
     position: sticky;
     top: 0;
     display: flex;
@@ -36,7 +36,7 @@
     z-index: 1000;
   }
 
-  nav.custom-nav a {
+  nav.bottom-nav a {
     position: relative;
     text-decoration: none;
     font-weight: 500;
@@ -45,7 +45,7 @@
     transition: color 0.3s ease;
   }
 
-  nav.custom-nav a::after {
+  nav.bottom-nav a::after {
     content: "";
     position: absolute;
     left: 0;
@@ -56,11 +56,11 @@
     transition: width 0.3s ease;
   }
 
-  nav.custom-nav a:hover {
+  nav.bottom-nav a:hover {
     color: #fff;
   }
 
-  nav.custom-nav a:hover::after {
+  nav.bottom-nav a:hover::after {
     width: 100%;
   }
 </style>
@@ -104,6 +104,7 @@
   </script>
 </body>
 </html>
+
 
 
 
