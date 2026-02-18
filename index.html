@@ -22,15 +22,57 @@
 <meta name="twitter:image" content="https://shinralab.github.io/travisflower/ogbg.png" />
 
 </head>
+<style>
+  nav.custom-nav {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    padding: 1rem 2rem;
+    backdrop-filter: blur(12px);
+    background: rgba(20, 20, 30, 0.6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 1000;
+  }
+
+  nav.custom-nav a {
+    position: relative;
+    text-decoration: none;
+    font-weight: 500;
+    color: #ddd;
+    letter-spacing: 0.5px;
+    transition: color 0.3s ease;
+  }
+
+  nav.custom-nav a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    width: 0%;
+    height: 2px;
+    background: linear-gradient(90deg, #00f5ff, #ff00c8);
+    transition: width 0.3s ease;
+  }
+
+  nav.custom-nav a:hover {
+    color: #fff;
+  }
+
+  nav.custom-nav a:hover::after {
+    width: 100%;
+  }
+</style>
 
 <body>
   <nav class="bottom-nav">
   <ul>
-    <li><a href="https://shinralab.github.io/chatgpt">ChatGPT</a></li>
+    <li><a href="https://shinralab.github.io/chatgpt.html">ChatGPT</a></li>
     <li><a href="https://shinralab.github.io/Claude/index.html">Claude</a></li>
-    <li><a href="https://shinralab.github.io/gemini">Gemini</a></li>
-    <li><a href="https://shinralab.github.io/grok">Grok</a></li>
-    <li><a href="https://shinralab.github.io/qwen3">Qwen3</a></li>
+    <li><a href="https://shinralab.github.io/gemini.html">Gemini</a></li>
+    <li><a href="https://shinralab.github.io/grok.html">Grok</a></li>
+    <li><a href="https://shinralab.github.io/Qwen.html">Qwen3</a></li>
   </ul>
 </nav>
   
@@ -61,6 +103,7 @@
   </script>
 </body>
 </html>
+
 
 
 
